@@ -14,6 +14,7 @@ function rndColor() {
 
 	//color background of page and main page header
 	document.getElementById("body").style.backgroundColor = color1;
+	document.getElementById("cardForm").style.borderColor=color1;
 	document.getElementById("pageHead").style.color = color2;
 
 	//color the links
@@ -22,4 +23,3 @@ function rndColor() {
 		links[i].style.color=color2;
 	}
 }
-
