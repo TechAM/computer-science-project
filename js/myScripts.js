@@ -22,4 +22,30 @@ function rndColor() {
 	for(var i=0;i<links.length;i++){
 		links[i].style.color=color2;
 	}
+
+
+	var formControls = document.getElementsByClassName("form-control");
+	for(var i=0; i<formControls.length; i++){
+ 		formControls[i].setCustomValidity('');
+	}
+
+	
 }
+
+
+function missingData(data){
+	if(data.length>0){
+		var message = "Please input: ";
+
+		document.getElementById("errorBox").style.visibility="visible";
+		for(var i=0; i<data.length; i++){
+			console.log(data[i]);
+			message += data[i] +", ";
+		}
+		document.getElementById("errorMsg").innerHTML=message;
+
+
+	}
+}
+
+

@@ -16,11 +16,11 @@ body{
 
 #wrapper-outer{
 	position: relative;
-	height: 100%;
+	height: 95%;
 }
 #wrapper-inner{
-	width: 96%;
-	height: 94%;
+	width: 95%;
+	height: 95%;
 	overflow: auto;
 	margin: auto;
 	position: absolute;
@@ -33,7 +33,7 @@ body{
 
 .jumbotron{
 	margin: auto;
-	margin-top: 5%;
+	margin-top: 3%;
 	text-align: center;
 	width: 50%;
 	padding:0.4em;
@@ -70,6 +70,24 @@ body{
 	float:right;
 }
 
+#errorBox{
+	visibility: hidden;
+	float: left;
+	margin: 0;
+	padding: auto;
+	padding-bottom: 0;
+	/*display: inline-block;*/
+}
+
+#errorMsg{
+	float: left;
+	padding: auto;
+	font-size: 1.2em;
+}
+
+#registrationForm{
+	padding: 2px;
+}
 
 .form-control:focus, .form-control:active{
 	background-color:rgba(30,30,30,1);
@@ -97,3 +115,4 @@ body{
 .form-group{
 	margin: 0; 
 }
+
