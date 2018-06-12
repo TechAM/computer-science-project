@@ -4,10 +4,13 @@ require_once('../mysqli_connect.php');
 
 // if(isset($_POST['submit'])){
 // echo json_encode( $_SERVER['REQUEST_METHOD'] . " " . $_POST['username']);
+
 $valid = $validName = $validEmail = $passwordsMatch = false;
 $data_missing = array();
 $invalid = array();
+$existing = array();
 
+//store each missing/invalid/already existing field in respective arrays
 if(empty($_POST['username'])){
 	$data_missing[] = 'username';
 }else{
@@ -54,52 +57,40 @@ if(empty($_POST['password'])){
 		$invalid[] = "password";		
 	}
 	// echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $password);
-
 }
 
 // echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $username  . " " . $email . " " . $password);
-echo json_encode($data_missing);
 
 
 if(empty($data_missing)){
 	//if either username or email are invalid or passwords don't match then set valid to false
 	$valid = $validName && $validEmail && $passwordsMatch;
 	
-	//for each invalid column store it in an array
-	if(!$validName){
-		$invalid[] = "Username";
-	}
-	if(!$validEmail){
-		$invalid[] = "Email";
-	}
-	if(!$passwordsMatch){
-		$invalid[] = "Password";
-	}
-
 	if($valid){
 		//if username or email address already exists don't proceed with insert
-		$sqlCheckExists = "SELECT COUNT(*) AS total FROM users WHERE username=? OR email=?";
-		$stmt = $db_connection->prepare($sqlCheckExists);
-		$stmt->bind_param("ss", $username, $email);
-		
-		if(!$stmt->execute()){
-			trigger_error('The query execution failed; MySQL said ('.$stmt->errno.') '.$stmt->error, E_USER_ERROR);
-		}
+		$result = $db_connection->query("SELECT COUNT(*) AS total FROM users WHERE username = '".$username."'");
+		$row = $result->fetch_assoc();
+		$resultUser = $row['total'];
+
 		$result = null;
-		$stmt->bind_result($result);
-		$stmt->fetch();
-		// echo "counted {$result} records<br>";
+		$row = null;
+
+		$result = $db_connection->query("SELECT COUNT(*) AS total FROM users WHERE email = '".$email."'");
+		$row = $result->fetch_assoc();
+		$resultEmail = $row['total'];
+
+
+		if($resultUser > 0){
+			$existing[] = "username";
+		}else if($resultEmail > 0){
+			$existing[] = "email";
+		}
 		
-		$stmt->close();
+
 		//sql to insert new user record passed prepared and executed after binding input values to correct fields
-		if($result==0){
+		if(empty($existing)){
 			$sqlInsert = "INSERT INTO users (username, email, sign_up_date, password) VALUES (?,?,now(),?)";
 			$stmt = $db_connection->prepare($sqlInsert);
-
-			// echo $username."<br>";
-			// echo $email."<br>";
-			// echo $password."<br>";
-
 			$stmt->bind_param("sss", $username, $email, $password);
 
 			if($stmt->execute()){
@@ -110,26 +101,16 @@ if(empty($data_missing)){
 			//close the statement
 			$stmt->close();
 		}
-	}else{
-		// echo "These fields are invalid:<br>";
-		// foreach($invalid as $result){
-		// 	echo $result."<br>";
-		// }
-
-		// $result0 = $invalid[0];
-		// echo $result0;
-		//using JSON to send data to the Javascript
 	}
 }
 
-	//close the database connection
-	
+$response = array(
+		"missingData" => $data_missing,
+		"invalidData" => $invalid,
+	 	"existingData" => $existing);
 
-	//return to main page once signed up
-	// header("Location: {$_SERVER['HTTP_REFERER']}");
-	// exit;
-// }
+echo json_encode($response);
 
-
+//close the database connection
 $db_connection->close();
 ?>

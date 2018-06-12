@@ -16,11 +16,11 @@ body{
 
 #wrapper-outer{
 	position: relative;
-	height: 95%;
+	height: 98%;
 }
 #wrapper-inner{
 	width: 95%;
-	height: 95%;
+	height: 96%;
 	overflow: auto;
 	margin: auto;
 	position: absolute;
@@ -85,7 +85,7 @@ body{
 	font-size: 1.2em;
 }
 
-#registrationForm{
+#registrationFormDiv{
 	padding: 2px;
 }
 
@@ -96,7 +96,7 @@ body{
 	border:none;
 }
 
-.form-control:hover{
+.loginInput.form-control:hover{
 	border-color: #FFFFFF;
   	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 255, 255, 0.6);
 }

@@ -5,85 +5,101 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<meta name="author" content="Avi Mukesh"/>
 
-		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/> -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 		<link rel="stylesheet" href="css/mainPageStyles.css"/>
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
   		<script src="js/myScripts.js"></script>
-<!--   		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
+	  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	    <script type="text/javascript">	
+	    	$(function (){
+				console.log("document loaded");
 
-  	<<!-- script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
-  	<!-- <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script> -->
-  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script type="text/javascript">	
-    	$(function (){
-			console.log("document loaded");
-			var request;
-
-
-			$("#registrationForm").on("submit", function(e){
-				//prevents page from refreshing upon submitting
-				e.preventDefault();
-				console.log("form submitted");
-
-				//abort pending requests
-				if(request){
-					request.abort();
-				}
-
-				var $form = $(this);
-				var $inputs = $form.find("input");
-
-				//JSON object for PHP to process
-				var serializedData = {
-					"username": $("#username").val(),
-					"email": $("#email").val(),
-					"password": $("#password").val(),
-					"confirm_password": $("#confirm_password").val()
-				}
-
-				// var serializedData = $form.serialize();
-				console.log(serializedData);
-				//disable inputs during processing
-				$inputs.prop("disabled", true);
-
-				//create AJAX call request, post the form data
-				request = $.ajax({
-				  type: "post",
-				  // url: "ajax.php",
-				  url: "php/processRegistration.php",
-				  data: serializedData,
-				  dataType: "json",
-				  success: function(data){
-				  		console.log("request success!");
-				  }
+				//remove borders around input fields when text is input into them
+				$("#username, #email, #password, #confirm_password").keypress(function(){
+					$(this).css("border","1px solid rgb(206, 212, 218)");			
+				});
+				$("#password").keypress(function(){
+					$("#confirm_password").css("border","1px solid rgb(206, 212, 218)");			
+				});
+				$("#confirm_password").keypress(function(){
+					$("#password").css("border","1px solid rgb(206, 212, 218)");			
 				});
 
-				request.done(function(response, textStatus, jqXHR){
-					console.log("response success!");
+				var request;
 
-					//pass the missing data array to JS function for processing
-					$.getScript("js/myScripts.js", function(){
-						missingData(response);
+				$("#regForm").on("submit", function(e){
+					//prevents page from refreshing upon submitting
+					e.preventDefault();
+					console.log("form submitted");
+
+					//abort pending requests
+					if(request){
+						request.abort();
+					}
+
+					var $form = $(this);
+					var $inputs = $form.find("input");
+
+					var data = $form.serialize();
+					console.log(data);
+					//disable inputs during processing
+					$inputs.prop("disabled", true);
+
+					//create AJAX call request, post the form data
+					request = $.ajax({
+					  type: "post",
+					  url: "php/processRegistration.php",
+					  data: data,
+					  dataType: "json",
+					  success: function(data){
+					  		console.log("request success!");
+					  }
 					});
 
+					request.done(function(response, textStatus, jqXHR){
+						//successfully received response from PHP server
+						$.getScript("js/myScripts.js", function(){
+							//error if one or more of the 3 main fields are missing
+							if(response.missingData.length==0){
+								console.log("all fields input, checking for invalid fields...");
+								//error if one of more fields are invalid
+								if(response.invalidData.length==0){
+									console.log("no fields invalid, checking if user with username/email exists");
+									if(response.existingData.length==0){
+										$("#errorBox").css("visibility", "visible");
+										$("#errorBox").removeClass("alert-danger");
+										$("#errorBox").addClass("alert-success");
+										$("#errorMsg").html("Sign up success!");
+									}else{
+										console.log("other users exist");
+										usersExist(response.existingData);
+									}
+								}else{
+									// response.invalidData.forEach(invalidData);
+									invalidData(response.invalidData);
+								}
+							}else{
+								missingData(response.missingData);
+							}
+						});
+
+					});
+
+					request.fail(function(jqXHR, textStatus, errorThrown){
+						$("#errorMsg").html(textStatus + errorThrown);
+						console.error("The following error occurred: " + textStatus + errorThrown);
+					});
+
+					//always reenable the inputs after processing
+					request.always(function(){
+						$inputs.prop("disabled", false);
+					});
 				});
 
-				request.fail(function(jqXHR, textStatus, errorThrown){
-					console.error("The following error occurred: " + textStatus + errorThrown);
-				});
-
-				//always reenable the inputs after processing
-				request.always(function(){
-					$inputs.prop("disabled", false);
-				});
-			});
-
-    	});
-
+	    	});
 		</script>
 		<title>Cube Nation</title>
 	</head>
@@ -92,8 +108,6 @@
 		<!--2 wrappers: outer wrapper sets position of inner wrapper within page, inner wrapper sets white background, border and centers the content-->
 		<div id="wrapper-outer">
 			<div id="wrapper-inner">
-
-
 				<div class="container">
 					<!-- header contained within dark theme jumbotron div -->
 					<div class="jumbotron bg-dark text-light">
@@ -109,22 +123,21 @@
 
 						<div class="card-body">
 							<form action="" method="post" target="_blank">
-								<input type="text" class="form-control" name="username" placeholder="Username"/><br>
-							 	<input type="password" class="form-control" name="password" placeholder="Password"/><br>
+								<input type="text" class="form-control loginInput" name="username" placeholder="Username"/><br>
+							 	<input type="password" class="form-control loginInput" name="password" placeholder="Password"/><br>
 							 	<p class="card-text" style="float:left;">Click <a class="card-link" href="">here</a> if you've forgotten your password</p>
 							 	<input type="submit" class="btn btn-light"/>
 							</form>
 						</div>
 
 						<div class="card-footer">
-							<p class="card-text">Or sign up <a class="card-link" data-toggle="modal" href="#registrationForm">now</a></p>
+							<p class="card-text">Or sign up <a class="card-link" data-toggle="modal" href="#registrationFormDiv">now</a></p>
 						</div>
 					</div>
 				</div>
 
-
 				<!--modal registration form that pops up -->
-				<div id="registrationForm" class="modal fade" role="dialog">
+				<div id="registrationFormDiv" class="modal fade" role="dialog">
 					<div class="modal-dialog modal-dialog-centered" role="document">
 						<div class="modal-content">
 							<div class="modal-header">
@@ -133,37 +146,39 @@
 							</div>
 
 							<div class="modal-body">
-								<form  method="post" target="_blank">
+								<form id="regForm" method="post" target="_blank">
 									<div class="form-group">
 										<label for="username" class="label">Username:</label>
-										<input type="text" id="username" class="form-control" name="username" required autofocus oninvalid="setCustomValidity('Please enter a username')" oninput="setCustomValidity('')"/><br>
+										<input type="text" id="username" class="form-control" name="username"  autofocus oninvalid="setCustomValidity('Please enter a username')" oninput="setCustomValidity('')"/><br>
 									</div>
 									<div class="form-group">
 										<label for="email" class="label">Email address:</label>
-							 			<input type="email" id="email" class="form-control" name="email" required oninvalid="setCustomValidity('Please enter a valid email address')" oninput="setCustomValidity('')"/><br>
+							 			<input type="email" id="email" class="form-control" name="email"  oninvalid="setCustomValidity('Please enter a valid email address')" oninput="setCustomValidity('')"/><br>
 									</div>
 									<div class="form-group">
 										<label for="password" class="label">Password:</label>
-							 			<input type="password" id="password" class="form-control" name="password" required oninvalid="setCustomValidity('Please enter a valid password')" oninput="setCustomValidity('')"/><br>
+							 			<input type="password" id="password" class="form-control" name="password" oninvalid="setCustomValidity('Please enter a valid password')" oninput="setCustomValidity('')"/><br>
+							 			<!-- progress bar to inciate password strength -->
+							 			<div class="progress" value="" max="">
+							 				
+							 			</div>
 									</div>
 									<div class="form-group">
 										<label for="confirm_password" class="label">Confirm password:</label>
 							 			<input type="password" id="confirm_password" class="form-control" name="confirm_password" oninvalid="setCustomValidity('Please enter a username')" oninput="setCustomValidity('')"/><br>
 									</div>
-							 		<input type="submit" name="submit" value="Sign up" class="btn btn-dark" />
+							 		<input type="submit" id="submit" name="submit" value="Sign up" class="btn btn-dark" />
 								</form>
-								<div id="errorBox" class="alert alert-danger">
+								<div id="errorBox" class="alert alert-danger alert-dismissible">
 									<p id="errorMsg"></p>
+									<button type="button" class="close" data-dismiss="alert" aria-label="close">&times;</a>
 								</div>
 							</div>
 							<div class="modal-footer">
-								
 								<input type="button" class="btn btn-dark" data-dismiss="modal" value="Close"  />
 							</div>
 						</div>
 					</div>
-
-					
 				</div>
 			</div>
 		</div>
