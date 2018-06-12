@@ -32,20 +32,38 @@ function rndColor() {
 	
 }
 
-
+//if some fields are missing then display the appropriate input message
 function missingData(data){
-	if(data.length>0){
-		var message = "Please input: ";
+	var message = "Please input: " + data.join(", ") + ".";
 
-		document.getElementById("errorBox").style.visibility="visible";
-		for(var i=0; i<data.length; i++){
-			console.log(data[i]);
-			message += data[i] +", ";
-		}
-		document.getElementById("errorMsg").innerHTML=message;
-
-
+	document.getElementById("errorBox").style.visibility="visible";
+	for(var i=0; i<data.length; i++){
+		document.getElementById(data[i]).style.border="2px solid rgba(255, 0, 0, 0.75)";
 	}
+
+	document.getElementById("errorMsg").innerHTML=message;
 }
 
+//if some fields are invalid displau the appropriate error message
+function invalidData(data){
+	var message = "Invalid: " + data.join(", ") +".";
+	document.getElementById("errorBox").style.visibility="visible";
 
+	for (var i=0; i<data.length;i++){
+		if(data[i]=="password"){
+			message += " Passwords don't match";
+			document.getElementById("confirm_password").style.border="2px solid rgb(255,200,145,0.75)";
+		}
+		document.getElementById(data[i]).style.border="2px solid rgb(255,200,145,0.75)";
+	}
+	document.getElementById("errorMsg").innerHTML=message;
+}
+
+function usersExist(data){
+	var message = "That " + data[0] + " is already taken";
+	console.log(message);
+	document.getElementById("errorBox").style.visibility="visible";
+
+	document.getElementById(data[0]).style.border="2px solid rgba(255,200,145,0.75)";
+	document.getElementById("errorMsg").innerHTML=message;
+}
