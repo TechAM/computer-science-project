@@ -3,7 +3,6 @@
 require_once('../mysqli_connect.php');
 
 // if(isset($_POST['submit'])){
-// echo json_encode( $_SERVER['REQUEST_METHOD'] . " " . $_POST['username']);
 
 $valid = $validName = $validEmail = $passwordsMatch = false;
 $data_missing = array();
@@ -16,13 +15,10 @@ if(empty($_POST['username'])){
 }else{
 	$username = trim($_POST['username']);
 	if(!preg_match("/^[\w-]+$/", $username) ){
-		// echo $username." is invalid<br>";
 		$invalid[] = "username";
 	}else{
-		// echo $username." is valid<br>";
 		$validName = true;
 	}
-	// echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $username);
 }
 
 if(empty($_POST['email'])){
@@ -31,14 +27,10 @@ if(empty($_POST['email'])){
 	$emailValid = false;
 	$email = trim($_POST['email']);
 	if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-		// echo $email." is invalid<br>";
 		$invalid[] = "email";
 	} else {
-		// echo $email." is valid<br>";
 		$validEmail = true;
 	}
-	// echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $email);
-
 }
 
 if(empty($_POST['password'])){
@@ -48,22 +40,16 @@ if(empty($_POST['password'])){
 	$confirm_password = $_POST['confirm_password'];
 
 	if(strcmp($password, $confirm_password) == 0){
-		// echo "passwords match<br>";
 		$options = ['cost' => 10];
 		$password = password_hash($password, PASSWORD_BCRYPT, $options);
 		$passwordsMatch = true;
-		// echo $password."<br>";
 	}else{
 		$invalid[] = "password";		
 	}
-	// echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $password);
 }
 
-// echo json_encode($_SERVER['REQUEST_METHOD'] . " " . $username  . " " . $email . " " . $password);
-
-
 if(empty($data_missing)){
-	//if either username or email are invalid or passwords don't match then set valid to false
+	//if either username or email are invalid or passwords don't match then don't carry on with registration process
 	$valid = $validName && $validEmail && $passwordsMatch;
 	
 	if($valid){
@@ -85,10 +71,11 @@ if(empty($data_missing)){
 		}else if($resultEmail > 0){
 			$existing[] = "email";
 		}
-		
 
-		//sql to insert new user record passed prepared and executed after binding input values to correct fields
+		//if another user(s) with same username and/or email doesn't exist insert new record
 		if(empty($existing)){
+			//sql to insert new user record passed prepared and executed after binding input values to correct fields
+
 			$sqlInsert = "INSERT INTO users (username, email, sign_up_date, password) VALUES (?,?,now(),?)";
 			$stmt = $db_connection->prepare($sqlInsert);
 			$stmt->bind_param("sss", $username, $email, $password);
@@ -98,12 +85,14 @@ if(empty($data_missing)){
 			}else{
 				// echo "Record failed to insert : " . $stmt->error."<br>";
 			}
-			//close the statement
+
+			//close statement
 			$stmt->close();
 		}
 	}
 }
 
+//in JSON format, echo arrays containing containing names of fields causing errors
 $response = array(
 		"missingData" => $data_missing,
 		"invalidData" => $invalid,
