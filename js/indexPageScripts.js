@@ -27,41 +27,30 @@ function initialize() {
 		links[i].style.color=color2;
 	}
 
-	var regControls = document.getElementsByClassName("regInput");
+	var inputs = document.getElementsByClassName("form-control");
 
-	for(var i=0; i<regControls.length; i++){
+	for(var i=0; i<inputs.length; i++){
 		//when tooltip appears for invalid field, make it disappear upon further input
- 		regControls[i].oninput = function(){
+ 		inputs[i].oninput = function(){
  			this.setCustomValidity('');
  		};
-
+ 
 		//remove borders around input fields when text is input into them
- 		regControls[i].onkeypress = function(){
+ 		inputs[i].onkeypress = function(){
  			this.style.border=BOOTSTRAP_INPUT_BORDER;
  		};
 	}
-
-	// var passwordField = document.getElementById("password");
-	// var confirmPasswordField = document.getElementById("confirm_password");
-
-	// passwordField.onkeypress = function(){
- // 		this.style.border=BOOTSTRAP_INPUT_BORDER;
- // 		confirmPasswordField.style.border=BOOTSTRAP_INPUT_BORDER;
-	// }
-	// confirmPasswordField.onkeypress = function(){
- // 		this.style.border=BOOTSTRAP_INPUT_BORDER;
- // 		passwordField.style.border=BOOTSTRAP_INPUT_BORDER;
-	// }
 }
 
 //if some fields are missing display appropriate input message
-function missingData(data){
+function missingData(data, msgBoxId, msgId){
 	var message = "Please input: " + data.join(", ") + ".";
+	message = message.replace(/login_/g, "");
 
 	for(var i=0; i<data.length; i++){
 		document.getElementById(data[i]).style.border="2px solid rgba(255, 0, 0, 0.75)";
 	}
-	displayMessage(message);
+	displayMessage(message, msgBoxId, msgId);
 }
 
 //if some fields are invalid display appropriate error message
@@ -75,14 +64,14 @@ function invalidData(data){
 		}
 		document.getElementById(data[i]).style.border=INVALID_MISSING_BORDER;
 	}
-	displayMessage(message);
+	displayMessage(message, "regMessageBox", "regMessage");
 }
 
 //if other user(s) exist with username/email display message display appropriate error message
 function usersExist(data){
 	var message = "That " + data[0] + " is already taken.";
 	document.getElementById(data[0]).style.border=INVALID_MISSING_BORDER;
-	displayMessage(message)
+	displayMessage(message, "regMessageBox", "regMessage");
 }
 
 function checkPass(currentPass){
@@ -138,11 +127,11 @@ function strengthIncrease(occurences, max, multiplier){
 	return strengthIncrease;
 }
 
-function displayMessage(message){
-	var errorBox = document.getElementById("errorBox");
+function displayMessage(message, msgBoxId, msgId){
+	var errorBox = document.getElementById(msgBoxId);
 	errorBox.classList.remove("alert-success");
 	errorBox.classList.add("alert-danger");
 	errorBox.style.visibility="visible";
-	document.getElementById("errorMsg").innerHTML=message;
+	document.getElementById(msgId).innerHTML=message;
 
 }

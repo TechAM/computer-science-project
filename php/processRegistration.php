@@ -2,8 +2,6 @@
 
 require_once('../mysqli_connect.php');
 
-// if(isset($_POST['submit'])){
-
 $valid = $validName = $validEmail = $passwordsMatch = false;
 $data_missing = array();
 $invalid = array();
@@ -41,7 +39,7 @@ if(empty($_POST['password'])){
 
 	if(strcmp($password, $confirm_password) == 0){
 		$options = ['cost' => 10];
-		$password = password_hash($password, PASSWORD_BCRYPT, $options);
+		$passwordHash = password_hash($password, PASSWORD_BCRYPT);
 		$passwordsMatch = true;
 	}else{
 		$invalid[] = "password";		
@@ -53,18 +51,23 @@ if(empty($data_missing)){
 	$valid = $validName && $validEmail && $passwordsMatch;
 	
 	if($valid){
+
 		//if username or email address already exists don't proceed with insert
-		$result = $db_connection->query("SELECT COUNT(*) AS total FROM users WHERE username = '".$username."'");
-		$row = $result->fetch_assoc();
-		$resultUser = $row['total'];
+		//using prepared statements because more secure
+		$sqlCount = "SELECT * FROM users WHERE username = ?";
+		$stmt = $db_connection->prepare($sqlCount);
+		$stmt->bind_param("s", $username);
+		$stmt->execute();
+		$stmt->store_result();
+		$resultUser = $stmt->num_rows;
 
-		$result = null;
-		$row = null;
 
-		$result = $db_connection->query("SELECT COUNT(*) AS total FROM users WHERE email = '".$email."'");
-		$row = $result->fetch_assoc();
-		$resultEmail = $row['total'];
-
+		$sqlCount = "SELECT * FROM users WHERE email = ?";
+		$stmt = $db_connection->prepare($sqlCount);
+		$stmt->bind_param("s", $email);
+		$stmt->execute();
+		$stmt->store_result();
+		$resultEmail = $stmt->num_rows;
 
 		if($resultUser > 0){
 			$existing[] = "username";
@@ -78,17 +81,12 @@ if(empty($data_missing)){
 
 			$sqlInsert = "INSERT INTO users (username, email, sign_up_date, password) VALUES (?,?,now(),?)";
 			$stmt = $db_connection->prepare($sqlInsert);
-			$stmt->bind_param("sss", $username, $email, $password);
+			$stmt->bind_param("sss", $username, $email, $passwordHash);
 
-			if($stmt->execute()){
-				// echo "Record inserted successfully<br>";
-			}else{
-				// echo "Record failed to insert : " . $stmt->error."<br>";
-			}
-
-			//close statement
-			$stmt->close();
+			$stmt->execute();
 		}
+		//close statement
+		$stmt->close();
 	}
 }
 
